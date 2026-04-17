@@ -13,6 +13,8 @@
       --ok: #2ecc71;
       --bad: #e74c3c;
       --accent: #3498db;
+      --warn: #f39c12;
+      --border: rgba(255,255,255,0.06);
     }
     * { box-sizing: border-box; }
     body {
@@ -24,7 +26,7 @@
       padding: 1.5rem;
     }
     header {
-      max-width: 960px;
+      max-width: 1100px;
       margin: 0 auto 1.5rem;
       display: flex;
       flex-wrap: wrap;
@@ -33,32 +35,38 @@
       gap: 1rem;
     }
     h1 { font-size: 1.35rem; font-weight: 600; margin: 0; }
-    .meta { color: var(--muted); font-size: 0.875rem; }
+    .meta { color: var(--muted); font-size: 0.875rem; margin: 0.25rem 0 0; }
     button {
       background: var(--accent);
       color: #fff;
       border: none;
-      padding: 0.5rem 1rem;
+      padding: 0.45rem 0.9rem;
       border-radius: 8px;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       cursor: pointer;
+      font-weight: 500;
     }
+    button.secondary { background: #334155; }
+    button.warn { background: var(--warn); }
     button:disabled { opacity: 0.6; cursor: not-allowed; }
     .grid {
-      max-width: 960px;
+      max-width: 1100px;
       margin: 0 auto;
       display: grid;
       gap: 1rem;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     }
     .card {
       background: var(--card);
       border-radius: 12px;
       padding: 1rem 1.1rem;
-      border: 1px solid rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
     }
     .card h2 {
-      margin: 0 0 0.5rem;
+      margin: 0;
       font-size: 1rem;
       font-weight: 600;
     }
@@ -66,7 +74,6 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      margin-bottom: 0.35rem;
     }
     .dot {
       width: 10px;
@@ -79,8 +86,33 @@
     .dot.unk { background: var(--muted); }
     .status-label { font-weight: 600; font-size: 0.95rem; }
     .detail { font-size: 0.8rem; color: var(--muted); word-break: break-all; }
-    .error { color: #f39c12; font-size: 0.8rem; margin-top: 0.35rem; }
+    .detail a { color: var(--accent); text-decoration: none; }
+    .detail a:hover { text-decoration: underline; }
+    .label { font-size: 0.7rem; text-transform: uppercase; color: var(--muted); letter-spacing: 0.04em; margin-top: 0.25rem; }
+    .error { color: var(--warn); font-size: 0.8rem; }
     .loading { text-align: center; color: var(--muted); padding: 2rem; }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.5rem;
+    }
+    .actions button { flex: 1 1 auto; }
+    .output {
+      background: #0b1018;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 0.75rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.75rem;
+      color: #cbd5e1;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+    .output .ok { color: var(--ok); }
+    .output .bad { color: var(--bad); }
   </style>
 </head>
 <body>
@@ -100,6 +132,14 @@
     const checkedAt = document.getElementById('checkedAt');
     const refreshBtn = document.getElementById('refresh');
 
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
     function render(data) {
       const date = new Date(data.checkedAt);
       checkedAt.textContent = 'Dernière vérification : ' + date.toLocaleString('fr-FR');
@@ -107,8 +147,17 @@
       for (const r of data.results) {
         const card = document.createElement('article');
         card.className = 'card';
-        const dotClass = r.healthy ? 'ok' : r.status === null && r.error ? 'bad' : 'bad';
+        card.dataset.id = r.id;
+
+        const dotClass = r.healthy ? 'ok' : 'bad';
         const label = r.healthy ? 'En ligne' : 'Problème / hors ligne';
+
+        const frontendHtml = r.frontend
+          ? '<div class="label">Frontend</div>' +
+            '<div class="detail"><a href="' + escapeHtml(r.frontend.url) + '" target="_blank" rel="noopener">' +
+            escapeHtml(r.frontend.name || r.frontend.url) + '</a></div>'
+          : '';
+
         card.innerHTML =
           '<h2>' + escapeHtml(r.name) + '</h2>' +
           '<div class="row">' +
@@ -116,20 +165,20 @@
             '<span class="status-label">' + label + '</span>' +
           '</div>' +
           '<div class="detail">HTTP : ' + (r.status != null ? r.status : '—') +
-          ' · ' + (r.latencyMs != null ? r.latencyMs + ' ms' : '') + '</div>' +
-          '<div class="detail"><a href="' + escapeHtml(r.url) + '" target="_blank" rel="noopener" style="color:var(--accent)">' +
+            ' · ' + (r.latencyMs != null ? r.latencyMs + ' ms' : '') + '</div>' +
+          '<div class="label">Backend</div>' +
+          '<div class="detail"><a href="' + escapeHtml(r.url) + '" target="_blank" rel="noopener">' +
             escapeHtml(r.url) + '</a></div>' +
-          (r.error ? '<div class="error">' + escapeHtml(r.error) + '</div>' : '');
+          frontendHtml +
+          (r.error ? '<div class="error">' + escapeHtml(r.error) + '</div>' : '') +
+          '<div class="actions">' +
+            '<button type="button" class="secondary" data-action="test" data-id="' + escapeHtml(r.id) + '">Tester</button>' +
+            '<button type="button" class="warn" data-action="restart" data-id="' + escapeHtml(r.id) + '">Redémarrer</button>' +
+          '</div>' +
+          '<div class="output" data-output="' + escapeHtml(r.id) + '" hidden></div>';
+
         grid.appendChild(card);
       }
-    }
-
-    function escapeHtml(s) {
-      return String(s)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
     }
 
     async function load() {
@@ -147,6 +196,61 @@
         refreshBtn.disabled = false;
       }
     }
+
+    async function runTest(id, btn) {
+      const output = document.querySelector('[data-output="' + CSS.escape(id) + '"]');
+      output.hidden = false;
+      output.textContent = 'Envoi de la requête…';
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/test/' + encodeURIComponent(id), { method: 'POST' });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || res.statusText);
+        const cls = data.response.status >= 200 && data.response.status < 400 ? 'ok' : 'bad';
+        output.innerHTML =
+          '<div><strong>' + data.request.method + '</strong> ' + escapeHtml(data.request.url) + '</div>' +
+          (data.request.body ? '<div>Body : ' + escapeHtml(JSON.stringify(data.request.body)) + '</div>' : '') +
+          '<div>Statut : <span class="' + cls + '">' + data.response.status + '</span> · ' + data.response.latencyMs + ' ms</div>' +
+          '<div>Type : ' + escapeHtml(data.response.contentType || '—') + '</div>' +
+          '<hr style="border-color:rgba(255,255,255,0.08);margin:0.5rem 0" />' +
+          '<div>' + escapeHtml(data.response.body || '(vide)') +
+          (data.response.truncated ? '\n… (tronqué)' : '') + '</div>';
+      } catch (e) {
+        output.textContent = 'Erreur : ' + e.message;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function runRestart(id, btn) {
+      if (!confirm('Redémarrer tous les dynos de ce service ?')) return;
+      const output = document.querySelector('[data-output="' + CSS.escape(id) + '"]');
+      output.hidden = false;
+      output.textContent = 'Redémarrage en cours…';
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/restart/' + encodeURIComponent(id), { method: 'POST' });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || res.statusText);
+        output.innerHTML =
+          '<div>App : <strong>' + escapeHtml(data.herokuApp) + '</strong></div>' +
+          '<div>Statut Heroku : <span class="' + (data.ok ? 'ok' : 'bad') + '">' + data.status + '</span></div>' +
+          '<div>' + (data.ok ? 'Redémarrage demandé. Les dynos vont relancer dans quelques secondes.' : escapeHtml(data.body || '')) + '</div>';
+        setTimeout(load, 8000);
+      } catch (e) {
+        output.textContent = 'Erreur : ' + e.message;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    grid.addEventListener('click', (event) => {
+      const btn = event.target.closest('button[data-action]');
+      if (!btn) return;
+      const { action, id } = btn.dataset;
+      if (action === 'test') runTest(id, btn);
+      else if (action === 'restart') runRestart(id, btn);
+    });
 
     refreshBtn.addEventListener('click', load);
     load();

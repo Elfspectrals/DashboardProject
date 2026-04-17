@@ -2,25 +2,63 @@
   {
     "id": "french-correction",
     "name": "French correction",
+    "herokuApp": "limitless-hamlet-24555",
     "checkUrl": "https://limitless-hamlet-24555-345adb59b9ad.herokuapp.com/",
-    "method": "GET"
+    "method": "GET",
+    "test": {
+      "url": "https://limitless-hamlet-24555-345adb59b9ad.herokuapp.com/verify-text",
+      "method": "POST",
+      "body": { "text": "bonjour je suis un test" }
+    },
+    "frontend": {
+      "name": "VerifyFrench (extension Chrome)",
+      "url": "https://github.com/Elfspectrals/VerifyFrench"
+    }
   },
   {
     "id": "share-drink",
     "name": "ShareDrink API",
+    "herokuApp": "glacial-peak-80926",
     "checkUrl": "https://glacial-peak-80926-22b58b868cdc.herokuapp.com/?name=margarita",
-    "method": "GET"
+    "method": "GET",
+    "test": {
+      "url": "https://glacial-peak-80926-22b58b868cdc.herokuapp.com/?name=margarita",
+      "method": "GET"
+    },
+    "frontend": {
+      "name": "ShareDrink (Expo / React Native)",
+      "url": "https://github.com/SpectralsOrganization/ShareDrink"
+    }
   },
   {
     "id": "spotify-ai",
     "name": "Spotify AI",
+    "herokuApp": "polar-ravine-64133",
     "checkUrl": "https://polar-ravine-64133-f97528c41675.herokuapp.com/test",
-    "method": "GET"
+    "method": "GET",
+    "test": {
+      "url": "https://polar-ravine-64133-f97528c41675.herokuapp.com/test",
+      "method": "GET"
+    },
+    "frontend": {
+      "name": "SpotifyPlaylistGenerator (extension Chrome)",
+      "url": "https://github.com/Elfspectrals/SpotifyPlaylistGenerator"
+    }
   },
   {
     "id": "traduction",
     "name": "Traduction / Switch language",
+    "herokuApp": "shielded-badlands-31829",
     "checkUrl": "https://shielded-badlands-31829-3fe481cfadea.herokuapp.com/",
-    "method": "GET"
+    "method": "GET",
+    "test": {
+      "url": "https://shielded-badlands-31829-3fe481cfadea.herokuapp.com/language-switch",
+      "method": "POST",
+      "body": { "text": "hello world", "language": "French" }
+    },
+    "frontend": {
+      "name": "SwitchLanguage (extension Chrome)",
+      "url": "https://github.com/Elfspectrals/SwitchLanguage"
+    }
   }
 ]
