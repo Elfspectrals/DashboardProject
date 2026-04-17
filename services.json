@@ -26,8 +26,8 @@
       "method": "GET"
     },
     "frontend": {
-      "name": "ShareDrink (Expo / React Native)",
-      "url": "https://github.com/SpectralsOrganization/ShareDrink"
+      "name": "ShareDrink (web Firebase)",
+      "url": "https://sharedrinks-b8a73.web.app/"
     }
   },
   {
