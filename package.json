@@ -1,0 +1,16 @@
+{
+  "name": "dashboard-project",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Simple Heroku dashboard for backend health checks",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": "20.x"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

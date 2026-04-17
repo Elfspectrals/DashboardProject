@@ -1,0 +1,26 @@
+[
+  {
+    "id": "french-correction",
+    "name": "French correction",
+    "checkUrl": "https://limitless-hamlet-24555-345adb59b9ad.herokuapp.com/",
+    "method": "GET"
+  },
+  {
+    "id": "share-drink",
+    "name": "ShareDrink API",
+    "checkUrl": "https://glacial-peak-80926-22b58b868cdc.herokuapp.com/?name=margarita",
+    "method": "GET"
+  },
+  {
+    "id": "spotify-ai",
+    "name": "Spotify AI",
+    "checkUrl": "https://polar-ravine-64133-f97528c41675.herokuapp.com/test",
+    "method": "GET"
+  },
+  {
+    "id": "traduction",
+    "name": "Traduction / Switch language",
+    "checkUrl": "https://shielded-badlands-31829-3fe481cfadea.herokuapp.com/",
+    "method": "GET"
+  }
+]

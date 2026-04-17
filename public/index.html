@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard — statut des backends</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --card: #1a2332;
+      --text: #e7ecf3;
+      --muted: #8b9cb3;
+      --ok: #2ecc71;
+      --bad: #e74c3c;
+      --accent: #3498db;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+    header {
+      max-width: 960px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    h1 { font-size: 1.35rem; font-weight: 600; margin: 0; }
+    .meta { color: var(--muted); font-size: 0.875rem; }
+    button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .grid {
+      max-width: 960px;
+      margin: 0 auto;
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    }
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .card h2 {
+      margin: 0 0 0.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.35rem;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot.ok { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+    .dot.bad { background: var(--bad); box-shadow: 0 0 8px var(--bad); }
+    .dot.unk { background: var(--muted); }
+    .status-label { font-weight: 600; font-size: 0.95rem; }
+    .detail { font-size: 0.8rem; color: var(--muted); word-break: break-all; }
+    .error { color: #f39c12; font-size: 0.8rem; margin-top: 0.35rem; }
+    .loading { text-align: center; color: var(--muted); padding: 2rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Statut des projets Heroku</h1>
+      <p class="meta" id="checkedAt">Chargement…</p>
+    </div>
+    <button type="button" id="refresh">Actualiser</button>
+  </header>
+  <div id="grid" class="grid"></div>
+  <p class="loading" id="loading">Vérification en cours…</p>
+
+  <script>
+    const grid = document.getElementById('grid');
+    const loading = document.getElementById('loading');
+    const checkedAt = document.getElementById('checkedAt');
+    const refreshBtn = document.getElementById('refresh');
+
+    function render(data) {
+      const date = new Date(data.checkedAt);
+      checkedAt.textContent = 'Dernière vérification : ' + date.toLocaleString('fr-FR');
+      grid.innerHTML = '';
+      for (const r of data.results) {
+        const card = document.createElement('article');
+        card.className = 'card';
+        const dotClass = r.healthy ? 'ok' : r.status === null && r.error ? 'bad' : 'bad';
+        const label = r.healthy ? 'En ligne' : 'Problème / hors ligne';
+        card.innerHTML =
+          '<h2>' + escapeHtml(r.name) + '</h2>' +
+          '<div class="row">' +
+            '<span class="dot ' + dotClass + '"></span>' +
+            '<span class="status-label">' + label + '</span>' +
+          '</div>' +
+          '<div class="detail">HTTP : ' + (r.status != null ? r.status : '—') +
+          ' · ' + (r.latencyMs != null ? r.latencyMs + ' ms' : '') + '</div>' +
+          '<div class="detail"><a href="' + escapeHtml(r.url) + '" target="_blank" rel="noopener" style="color:var(--accent)">' +
+            escapeHtml(r.url) + '</a></div>' +
+          (r.error ? '<div class="error">' + escapeHtml(r.error) + '</div>' : '');
+        grid.appendChild(card);
+      }
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    async function load() {
+      loading.style.display = 'block';
+      refreshBtn.disabled = true;
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || res.statusText);
+        loading.style.display = 'none';
+        render(data);
+      } catch (e) {
+        loading.textContent = 'Erreur : ' + e.message;
+      } finally {
+        refreshBtn.disabled = false;
+      }
+    }
+
+    refreshBtn.addEventListener('click', load);
+    load();
+    setInterval(load, 60000);
+  </script>
+</body>
+</html>
